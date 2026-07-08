@@ -246,11 +246,8 @@ def validate_verifier(verifier: bytes, srp_group_bits: int = DEFAULT_GROUP_BITS)
     srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
     v_int = int.from_bytes(verifier, byteorder='big')
 
-    if v_int % srp_group.N == 0:
-        raise IllegalParameter('verifier % N cannot be equal to 0')
-    
-    if v_int == 1:
-        raise IllegalParameter('verifier cannot be equal to 1')
+    if v_int <= 1 or v_int >= srp_group.N:
+        raise IllegalParameter('verifier must be greater than 1 and less than N')
     
 def create_verifier(
     user_identity: bytes, 
