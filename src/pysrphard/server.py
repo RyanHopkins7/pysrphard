@@ -1,7 +1,7 @@
 from .groups import SRP_GROUP_PARAMETERS
 from .constants import DEFAULT_GROUP_BITS, DEFAULT_HASH_FUNCTION, DEFAULT_KEY_LENGTH, MIN_KEY_LENGTH, MODULE_NAME
 from .hkdf import HashConstructor, hkdf
-from .srp_functions import validate_verifier, pad_int, pad_bytes, calculate_M, calculate_HAMK
+from .srp_functions import validate_verifier, pad_int, pad_bytes, calculate_M, calculate_HAMK, validate_AB
 from .exceptions import IllegalParameter, BadRecordMAC
 from typing import Tuple
 import hmac
@@ -16,7 +16,7 @@ class SRPServer:
     ) -> Tuple[bytes, bytes]:
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
 
-        # validate_verifier here is defensive programming in case this function is ever called independently
+        # defensive programming in case this function is ever called independently
         validate_verifier(verifier, srp_group_bits)
 
         k = hash_function(
@@ -41,13 +41,9 @@ class SRPServer:
     ) -> bytes:
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
 
-        # validate_verifier here is defensive programming in case this function is ever called independently
+        # defensive programming in case this function is ever called independently
         validate_verifier(verifier, srp_group_bits)
-
-        if len(padded_A) != srp_group.byte_length:
-            raise IllegalParameter('padded_A has incorrect length')
-        if len(padded_B) != srp_group.byte_length:
-            raise IllegalParameter('padded_B has incorrect length')
+        validate_AB(padded_A, padded_B, srp_group_bits)
 
         u = hash_function(padded_A + padded_B).digest()
 
@@ -56,9 +52,6 @@ class SRPServer:
         v_int = int.from_bytes(verifier, byteorder='big')
         A_int = int.from_bytes(padded_A, byteorder='big')
 
-        if A_int % srp_group.N == 0:
-            raise IllegalParameter('A % N cannot be equal to 0')
-        
         if u_int == 0:
             raise IllegalParameter('u cannot be equal to 0')
 
@@ -83,6 +76,8 @@ class SRPServer:
 
         padded_A = pad_bytes(A, srp_group.byte_length)
         padded_B = pad_bytes(B, srp_group.byte_length)
+
+        validate_AB(padded_A, padded_B, srp_group_bits)
 
         S = SRPServer.calculate_server_secret(verifier, b, padded_B, padded_A, srp_group_bits, hash_function)
 
@@ -109,6 +104,8 @@ class SRPServer:
         padded_A = pad_bytes(A, srp_group.byte_length)
         padded_B = pad_bytes(B, srp_group.byte_length)
         server_M = calculate_M(user_identity, salt, padded_A, padded_B, K, srp_group_bits, hash_function)
+
+        validate_AB(padded_A, padded_B, srp_group_bits)
 
         if not hmac.compare_digest(client_M, server_M):
             raise BadRecordMAC(f'Server failed to authenticate client {user_identity}')

@@ -1,5 +1,5 @@
 from .groups import SRP_GROUP_PARAMETERS
-from .srp_functions import pad_int, KDF, compute_x_int, pad_bytes, calculate_M, calculate_HAMK
+from .srp_functions import pad_int, KDF, compute_x_int, pad_bytes, calculate_M, calculate_HAMK, validate_AB
 from .hkdf import HashConstructor, hkdf
 from .exceptions import IllegalParameter, BadRecordMAC
 from .constants import MODULE_NAME, DEFAULT_HASH_FUNCTION, DEFAULT_GROUP_BITS, DEFAULT_KEY_LENGTH, MIN_KEY_LENGTH
@@ -31,10 +31,8 @@ class SRPClient:
     ) -> bytes:
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
 
-        if len(padded_A) != srp_group.byte_length:
-            raise IllegalParameter('padded_A has incorrect length')
-        if len(padded_B) != srp_group.byte_length:
-            raise IllegalParameter('padded_B has incorrect length')
+        # defensive programming in case this function is ever called independently
+        validate_AB(padded_A, padded_B, srp_group_bits)
 
         k = hash_function(
             pad_int(srp_group.N, srp_group.byte_length) + pad_int(srp_group.g, srp_group.byte_length)
@@ -44,9 +42,6 @@ class SRPClient:
         a_int = int.from_bytes(a, byteorder='big')
         B_int = int.from_bytes(padded_B, byteorder='big')
 
-        if B_int % srp_group.N == 0:
-            raise IllegalParameter('B % N cannot be equal to 0')
-        
         u = hash_function(padded_A + padded_B).digest()
         u_int = int.from_bytes(u, byteorder='big')
 
@@ -79,6 +74,9 @@ class SRPClient:
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
         padded_A = pad_bytes(A, srp_group.byte_length)
         padded_B = pad_bytes(B, srp_group.byte_length)
+
+        validate_AB(padded_A, padded_B, srp_group_bits)
+
         S = SRPClient.calculate_client_secret(
             user_identity, 
             password, 
@@ -113,6 +111,8 @@ class SRPClient:
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
         padded_A = pad_bytes(A, srp_group.byte_length)
         client_HAMK = calculate_HAMK(padded_A, client_M, K, srp_group_bits, hash_function)
+
+        validate_AB(padded_A, srp_group_bits=srp_group_bits)
 
         if not hmac.compare_digest(client_HAMK, server_HAMK):
             raise BadRecordMAC('Client failed to authenticate server')

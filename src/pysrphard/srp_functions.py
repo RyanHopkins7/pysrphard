@@ -1,5 +1,5 @@
 from .groups import SRP_GROUP_PARAMETERS
-from .constants import DEFAULT_GROUP_BITS, DEFAULT_HASH_FUNCTION, MIN_SALT_LENGTH
+from .constants import DEFAULT_GROUP_BITS, DEFAULT_HASH_FUNCTION, DEFAULT_SALT_LENGTH, MIN_SALT_LENGTH
 from .exceptions import IllegalParameter
 from .hkdf import HashConstructor
 from typing import Protocol, Tuple, Any
@@ -8,7 +8,7 @@ import secrets
 class KDF(Protocol):
     def __call__(self, password: bytes, salt: bytes, **params: Any) -> bytes: ...
 
-def generate_salt(salt_length: int = 16):
+def generate_salt(salt_length: int = DEFAULT_SALT_LENGTH):
     if salt_length < MIN_SALT_LENGTH:
         raise ValueError(f'salt_length must be >= {MIN_SALT_LENGTH}')
 
@@ -28,9 +28,27 @@ def compute_x_int(
     kdf_parameters: dict
 ) -> int:
     user_cat_password = user_identity + b':' + password
-    x = kdf(user_cat_password, salt, **kdf_parameters)
+    x = kdf(password=user_cat_password, salt=salt, **kdf_parameters)
 
     return int.from_bytes(x, byteorder='big')
+
+def validate_pub(pub: bytes, pub_name: str, srp_group_bits: int = DEFAULT_GROUP_BITS):
+    srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
+    pub_int = int.from_bytes(pub, byteorder='big')
+
+    if pub_int % srp_group.N == 0:
+        raise IllegalParameter(f'{pub_name} % N cannot be equal to 0')
+    if len(pub) != srp_group.byte_length:
+        raise IllegalParameter(f'{pub_name} padding is incorrect')
+
+def validate_AB(A: bytes = None, B: bytes = None, srp_group_bits: int = DEFAULT_GROUP_BITS):
+    if A is None and B is None:
+        raise IllegalParameter('validate_AB was called without A or B')
+
+    if A is not None:
+        validate_pub(A, 'A', srp_group_bits)
+    if B is not None:
+        validate_pub(B, 'B', srp_group_bits)
 
 def validate_verifier(verifier: bytes, srp_group_bits: int = DEFAULT_GROUP_BITS) -> None:
     srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
@@ -38,6 +56,8 @@ def validate_verifier(verifier: bytes, srp_group_bits: int = DEFAULT_GROUP_BITS)
 
     if v_int <= 1 or v_int >= srp_group.N:
         raise IllegalParameter('verifier must be greater than 1 and less than N')
+    if len(verifier) != srp_group.byte_length:
+        raise IllegalParameter('verifier padding is incorrect')
     
 def create_verifier(
     user_identity: bytes, 
@@ -45,7 +65,7 @@ def create_verifier(
     kdf: KDF,
     kdf_parameters: dict,
     srp_group_bits: int = DEFAULT_GROUP_BITS,
-    salt_length: int = 16
+    salt_length: int = DEFAULT_SALT_LENGTH
 ) -> Tuple[bytes, bytes]:
     salt = generate_salt(salt_length)
     x_int = compute_x_int(user_identity, password, salt, kdf, kdf_parameters)
