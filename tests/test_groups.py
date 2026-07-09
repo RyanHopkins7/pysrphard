@@ -1,10 +1,10 @@
 from pysrphard import SRPGroup, SRP_GROUP_PARAMETERS
-from decimal import Decimal, getcontext
+from decimal import Decimal, localcontext
 import unittest
 
-def compute_pi(digits):
+def compute_pi(digits, ctx):
     '''Chudnovsky algorithm'''
-    getcontext().prec = digits + 10  # guard digits
+    ctx.prec = digits + 10  # guard digits
     C = 426880 * Decimal(10005).sqrt()
     K = Decimal(6)
     M = Decimal(1)
@@ -41,11 +41,11 @@ class GroupTests(unittest.TestCase):
 
     def test_3072_bit_group(self):
         srp_group = SRP_GROUP_PARAMETERS[3072]
-
         digits_needed = 1000
-        pi_val = compute_pi(digits_needed)
 
-        pi_term = int((Decimal(2)**2942 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
+        with localcontext() as ctx:
+            pi_val = compute_pi(digits_needed, ctx)
+            pi_term = int((Decimal(2)**2942 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
 
         correct_3072_group = SRPGroup(
             bits=3072,
@@ -61,11 +61,11 @@ class GroupTests(unittest.TestCase):
 
     def test_4096_bit_group(self):
         srp_group = SRP_GROUP_PARAMETERS[4096]
-
         digits_needed = 2000
-        pi_val = compute_pi(digits_needed)
 
-        pi_term = int((Decimal(2)**3966 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
+        with localcontext() as ctx:
+            pi_val = compute_pi(digits_needed, ctx)
+            pi_term = int((Decimal(2)**3966 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
 
         correct_4096_group = SRPGroup(
             bits=4096,
@@ -81,11 +81,11 @@ class GroupTests(unittest.TestCase):
 
     def test_6144_bit_group(self):
         srp_group = SRP_GROUP_PARAMETERS[6144]
-
         digits_needed = 2000
-        pi_val = compute_pi(digits_needed)
 
-        pi_term = int((Decimal(2)**6014 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
+        with localcontext() as ctx:
+            pi_val = compute_pi(digits_needed, ctx)
+            pi_term = int((Decimal(2)**6014 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
 
         correct_6144_group = SRPGroup(
             bits=6144,
@@ -101,11 +101,11 @@ class GroupTests(unittest.TestCase):
 
     def test_8192_bit_group(self):
         srp_group = SRP_GROUP_PARAMETERS[8192]
-
         digits_needed = 3000
-        pi_val = compute_pi(digits_needed)
 
-        pi_term = int((Decimal(2)**8062 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
+        with localcontext() as ctx:
+            pi_val = compute_pi(digits_needed, ctx)
+            pi_term = int((Decimal(2)**8062 * pi_val).to_integral_value(rounding='ROUND_FLOOR'))
 
         correct_8192_group = SRPGroup(
             bits=8192,
