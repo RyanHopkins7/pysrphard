@@ -93,7 +93,7 @@ class SRPClient:
         )
 
         if key_length < MIN_KEY_LENGTH:
-            raise ValueError(f'key_length must be >= {MIN_KEY_LENGTH}')
+            raise IllegalParameter(f'key_length must be >= {MIN_KEY_LENGTH}')
 
         hkdf_info = MODULE_NAME.encode('utf-8') + padded_A + padded_B
         K = hkdf(S, key_length, info=hkdf_info, hash_function=hash_function)

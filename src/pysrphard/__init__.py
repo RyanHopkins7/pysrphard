@@ -4,6 +4,7 @@ from .client import SRPClient
 from .exceptions import BadRecordMAC, UnknownPSKIdentity, InsufficientSecurity, IllegalParameter
 from .srp_functions import create_verifier, validate_verifier
 from .hkdf import hkdf, hkdf_expand, hkdf_extract
+from .groups import SRP_GROUP_PARAMETERS, SRPGroup
 
 __all__ = [
     'SRPServer', 
@@ -16,5 +17,7 @@ __all__ = [
     'validate_verifier',
     'hkdf',
     'hkdf_expand',
-    'hkdf_extract'
+    'hkdf_extract',
+    'SRPGroup',
+    'SRP_GROUP_PARAMETERS'
 ]

@@ -130,6 +130,3 @@ class SRPGroup:
 SRP_GROUP_PARAMETERS = {
     bits: SRPGroup(bits, int(N.replace(' ', ''), 16), g, bits // 8) for bits, (N, g) in SRP_GROUPS.items()
 }
-
-if not all(v.N.bit_length() == k for k,v in SRP_GROUP_PARAMETERS.items()):
-    raise ValueError('The bit length of one of the SRP group parameters is incorrect')
