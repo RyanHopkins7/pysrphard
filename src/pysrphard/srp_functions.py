@@ -1,23 +1,19 @@
 from .groups import SRP_GROUP_PARAMETERS
-from .constants import DEFAULT_GROUP_BITS, DEFAULT_HASH_FUNCTION, DEFAULT_SALT_LENGTH, MIN_SALT_LENGTH
+from .constants import DEFAULT_GROUP_BITS, DEFAULT_HASH_FUNCTION, DEFAULT_SALT_LENGTH
 from .exceptions import IllegalParameter
 from .hkdf import HashConstructor
-from typing import Protocol, Tuple, Any
+from typing import Protocol, Tuple, Any, Optional
 import secrets
 
 class KDF(Protocol):
     def __call__(self, password: bytes, salt: bytes, **params: Any) -> bytes: ...
 
-def generate_salt(salt_length: int = DEFAULT_SALT_LENGTH):
-    if salt_length < MIN_SALT_LENGTH:
-        raise ValueError(f'salt_length must be >= {MIN_SALT_LENGTH}')
-
-    return secrets.token_bytes(salt_length)
-
 def pad_int(n: int, byte_length: int) -> bytes:
     return n.to_bytes(byte_length, byteorder='big')
 
 def pad_bytes(b: bytes, byte_length: int) -> bytes:
+    if len(b) > byte_length:
+        raise IllegalParameter('byte_length is too short')
     return pad_int(int.from_bytes(b, byteorder='big'), byte_length)
 
 def compute_x_int(
@@ -38,6 +34,8 @@ def validate_pub(pub: bytes, pub_name: str, srp_group_bits: int = DEFAULT_GROUP_
 
     if pub_int % srp_group.N == 0:
         raise IllegalParameter(f'{pub_name} % N cannot be equal to 0')
+    if pub_int <= 1 or pub_int >= srp_group.N - 1:
+        raise IllegalParameter(f'{pub_name} must be in [2, N-2]')
     if len(pub) != srp_group.byte_length:
         raise IllegalParameter(f'{pub_name} padding is incorrect')
 
@@ -54,8 +52,8 @@ def validate_verifier(verifier: bytes, srp_group_bits: int = DEFAULT_GROUP_BITS)
     srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
     v_int = int.from_bytes(verifier, byteorder='big')
 
-    if v_int <= 1 or v_int >= srp_group.N:
-        raise IllegalParameter('verifier must be greater than 1 and less than N')
+    if v_int <= 1 or v_int >= srp_group.N-1:
+        raise IllegalParameter('verifier must be in [2, N-2]')
     if len(verifier) != srp_group.byte_length:
         raise IllegalParameter('verifier padding is incorrect')
     
@@ -65,9 +63,11 @@ def create_verifier(
     kdf: KDF,
     kdf_parameters: dict,
     srp_group_bits: int = DEFAULT_GROUP_BITS,
-    salt_length: int = DEFAULT_SALT_LENGTH
+    salt: Optional[bytes] = None
 ) -> Tuple[bytes, bytes]:
-    salt = generate_salt(salt_length)
+    if salt is None:
+        salt = secrets.token_bytes(DEFAULT_SALT_LENGTH)
+
     x_int = compute_x_int(user_identity, password, salt, kdf, kdf_parameters)
     srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
 
@@ -77,6 +77,14 @@ def create_verifier(
     validate_verifier(verifier, srp_group_bits)
 
     return verifier, salt
+
+def calculate_u(
+    padded_A: bytes,
+    padded_B: bytes,
+    hash_function: HashConstructor = DEFAULT_HASH_FUNCTION
+) -> int:
+    u = hash_function(padded_A + padded_B).digest()
+    return int.from_bytes(u, byteorder='big')
 
 def calculate_M(
     user_identity: bytes,

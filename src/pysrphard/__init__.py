@@ -2,7 +2,7 @@
 from .server import SRPServer
 from .client import SRPClient
 from .exceptions import BadRecordMAC, UnknownPSKIdentity, InsufficientSecurity, IllegalParameter
-from .srp_functions import create_verifier, validate_verifier, calculate_M, calculate_HAMK, pad_bytes, pad_int
+from .srp_functions import create_verifier, validate_verifier, calculate_M, calculate_HAMK, pad_bytes, pad_int, calculate_u
 from .hkdf import hkdf, hkdf_expand, hkdf_extract
 from .groups import SRP_GROUP_PARAMETERS, SRPGroup
 
@@ -23,5 +23,6 @@ __all__ = [
     'calculate_M',
     'calculate_HAMK',
     'pad_int',
-    'pad_bytes'
+    'pad_bytes',
+    'calculate_u'
 ]

@@ -1,5 +1,5 @@
 from .groups import SRP_GROUP_PARAMETERS
-from .srp_functions import pad_int, KDF, compute_x_int, pad_bytes, calculate_M, calculate_HAMK, validate_AB
+from .srp_functions import pad_int, KDF, compute_x_int, pad_bytes, calculate_M, calculate_HAMK, validate_AB, calculate_u
 from .hkdf import HashConstructor, hkdf
 from .exceptions import IllegalParameter, BadRecordMAC
 from .constants import MODULE_NAME, DEFAULT_HASH_FUNCTION, DEFAULT_GROUP_BITS, DEFAULT_KEY_LENGTH, MIN_KEY_LENGTH
@@ -9,12 +9,11 @@ import secrets
 
 class SRPClient:
     @staticmethod
-    def generate_client_values(srp_group_bits: int = DEFAULT_GROUP_BITS) -> Tuple[bytes, bytes]:
+    def calculate_A(a: int, srp_group_bits: int = DEFAULT_GROUP_BITS) -> int:
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
-        a = secrets.randbelow(srp_group.N - 1) + 1
         A = pow(srp_group.g, a, srp_group.N)
 
-        return pad_int(A, srp_group.byte_length), pad_int(a, srp_group.byte_length)
+        return A
 
     @staticmethod
     def calculate_client_secret(
@@ -42,8 +41,7 @@ class SRPClient:
         a_int = int.from_bytes(a, byteorder='big')
         B_int = int.from_bytes(padded_B, byteorder='big')
 
-        u = hash_function(padded_A + padded_B).digest()
-        u_int = int.from_bytes(u, byteorder='big')
+        u_int = calculate_u(padded_A, padded_B, hash_function)
 
         if u_int == 0:
             raise IllegalParameter('u cannot be equal to 0')
@@ -55,7 +53,14 @@ class SRPClient:
 
     @staticmethod
     def start_key_exchange(srp_group_bits: int = DEFAULT_GROUP_BITS) -> Tuple[bytes, bytes]:
-        return SRPClient.generate_client_values(srp_group_bits)
+        srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
+        a = secrets.randbelow(srp_group.N - 1) + 1
+        A = SRPClient.calculate_A(a, srp_group_bits)
+        padded_A = pad_int(A, srp_group.byte_length)
+
+        validate_AB(padded_A, srp_group_bits=srp_group_bits)
+
+        return padded_A, pad_int(a, srp_group.byte_length)
 
     @staticmethod
     def finish_key_exchange(
@@ -110,9 +115,10 @@ class SRPClient:
     ):
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
         padded_A = pad_bytes(A, srp_group.byte_length)
-        client_HAMK = calculate_HAMK(padded_A, client_M, K, srp_group_bits, hash_function)
 
         validate_AB(padded_A, srp_group_bits=srp_group_bits)
+
+        client_HAMK = calculate_HAMK(padded_A, client_M, K, srp_group_bits, hash_function)
 
         if not hmac.compare_digest(client_HAMK, server_HAMK):
             raise BadRecordMAC('Client failed to authenticate server')
