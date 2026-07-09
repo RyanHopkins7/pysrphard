@@ -1,10 +1,9 @@
-from .groups import DEFAULT_GROUP_BITS, SRP_GROUP_PARAMETERS
+from .groups import SRP_GROUP_PARAMETERS
+from .constants import DEFAULT_GROUP_BITS, DEFAULT_HASH_FUNCTION, MIN_SALT_LENGTH
 from .exceptions import IllegalParameter
-from .hkdf import HashConstructor, DEFAULT_HASH_FUNCTION
+from .hkdf import HashConstructor
 from typing import Protocol, Tuple, Any
 import secrets
-
-MIN_SALT_LENGTH = 16
 
 class KDF(Protocol):
     def __call__(self, password: bytes, salt: bytes, **params: Any) -> bytes: ...

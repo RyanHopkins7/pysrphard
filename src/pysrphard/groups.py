@@ -1,8 +1,6 @@
 # 1024/1536-bit groups intentionally excluded
 # 2048 bit is currently the minimum acceptable for DH
 
-DEFAULT_GROUP_BITS = 4096
-
 SRP_GROUPS = {
     2048: ('''\
 AC6BDB41 324A9A9B F166DE5E 1389582F AF72B665 1987EE07 FC319294\

@@ -1,8 +1,8 @@
-from .groups import DEFAULT_GROUP_BITS, SRP_GROUP_PARAMETERS
+from .groups import SRP_GROUP_PARAMETERS
 from .srp_functions import pad_int, KDF, compute_x_int, pad_bytes, calculate_M, calculate_HAMK
-from .hkdf import HashConstructor, DEFAULT_HASH_FUNCTION, hkdf
+from .hkdf import HashConstructor, hkdf
 from .exceptions import IllegalParameter, BadRecordMAC
-from . import MODULE_NAME
+from .constants import MODULE_NAME, DEFAULT_HASH_FUNCTION, DEFAULT_GROUP_BITS, DEFAULT_KEY_LENGTH, MIN_KEY_LENGTH
 from typing import Tuple
 import hmac
 import secrets
@@ -72,6 +72,7 @@ class SRPClient:
         B: bytes,
         kdf: KDF,
         kdf_parameters: dict,
+        key_length: int = DEFAULT_KEY_LENGTH,
         srp_group_bits: int = DEFAULT_GROUP_BITS,
         hash_function: HashConstructor = DEFAULT_HASH_FUNCTION
     ) -> Tuple[bytes, bytes]:
@@ -90,8 +91,12 @@ class SRPClient:
             srp_group_bits, 
             hash_function
         )
+
+        if key_length < MIN_KEY_LENGTH:
+            raise ValueError(f'key_length must be >= {MIN_KEY_LENGTH}')
+
         hkdf_info = MODULE_NAME.encode('utf-8') + padded_A + padded_B
-        K = hkdf(S, 32, info=hkdf_info, hash_function=hash_function)
+        K = hkdf(S, key_length, info=hkdf_info, hash_function=hash_function)
         client_M = calculate_M(user_identity, salt, padded_A, padded_B, K, srp_group_bits, hash_function)
 
         return client_M, K

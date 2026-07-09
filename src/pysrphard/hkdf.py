@@ -1,14 +1,12 @@
+from .constants import DEFAULT_HASH_FUNCTION
 from typing import Protocol, Self
 from collections.abc import Buffer
-import hashlib
 import math
 import hmac
 
 '''
 HKDF implementation from RFC 5869
 '''
-
-DEFAULT_HASH_FUNCTION = hashlib.sha256
 
 class HashObject(Protocol):
     @property
@@ -26,8 +24,8 @@ class HashConstructor(Protocol):
     def __call__(self, data: bytes = b'', /) -> HashObject: ...
 
 def hkdf_extract(
-    salt: bytes,
     key_material: bytes,
+    salt: bytes = b'',
     hash_function: HashConstructor = DEFAULT_HASH_FUNCTION
 ) -> bytes:
     return hmac.digest(salt, key_material, hash_function)
@@ -59,5 +57,5 @@ def hkdf(
     info: bytes = b'', 
     hash_function: HashConstructor = DEFAULT_HASH_FUNCTION
 ) -> bytes:
-    prk = hkdf_extract(salt, key_material, hash_function)
+    prk = hkdf_extract(key_material, salt, hash_function)
     return hkdf_expand(prk, info, length, hash_function)

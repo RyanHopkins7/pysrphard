@@ -1,8 +1,8 @@
-from .groups import DEFAULT_GROUP_BITS, SRP_GROUP_PARAMETERS
-from .hkdf import HashConstructor, DEFAULT_HASH_FUNCTION, hkdf
+from .groups import SRP_GROUP_PARAMETERS
+from .constants import DEFAULT_GROUP_BITS, DEFAULT_HASH_FUNCTION, DEFAULT_KEY_LENGTH, MIN_KEY_LENGTH, MODULE_NAME
+from .hkdf import HashConstructor, hkdf
 from .srp_functions import validate_verifier, pad_int, pad_bytes, calculate_M, calculate_HAMK
 from .exceptions import IllegalParameter, BadRecordMAC
-from . import MODULE_NAME
 from typing import Tuple
 import hmac
 import secrets
@@ -71,6 +71,7 @@ class SRPServer:
     def key_exchange(
         verifier: bytes,
         A: bytes,
+        key_length: int = DEFAULT_KEY_LENGTH,
         srp_group_bits: int = DEFAULT_GROUP_BITS,
         hash_function: HashConstructor = DEFAULT_HASH_FUNCTION
     ) -> Tuple[bytes, bytes]:
@@ -85,8 +86,11 @@ class SRPServer:
 
         S = SRPServer.calculate_server_secret(verifier, b, padded_B, padded_A, srp_group_bits, hash_function)
 
+        if key_length < MIN_KEY_LENGTH:
+            raise ValueError(f'key_length must be >= {MIN_KEY_LENGTH}')
+
         hkdf_info = MODULE_NAME.encode('utf-8') + padded_A + padded_B
-        K = hkdf(S, 32, info=hkdf_info, hash_function=hash_function)
+        K = hkdf(S, key_length, info=hkdf_info, hash_function=hash_function)
 
         return padded_B, K
 

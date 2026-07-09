@@ -3,8 +3,7 @@ from .server import SRPServer
 from .client import SRPClient
 from .exceptions import BadRecordMAC, UnknownPSKIdentity, InsufficientSecurity, IllegalParameter
 from .srp_functions import create_verifier, validate_verifier
-
-MODULE_NAME = 'PySRPHard'
+from .hkdf import hkdf, hkdf_expand, hkdf_extract
 
 __all__ = [
     'SRPServer', 
@@ -14,5 +13,8 @@ __all__ = [
     'InsufficientSecurity', 
     'IllegalParameter',
     'create_verifier',
-    'validate_verifier'
+    'validate_verifier',
+    'hkdf',
+    'hkdf_expand',
+    'hkdf_extract'
 ]
