@@ -112,7 +112,7 @@ class SRPClient:
         K: bytes,
         srp_group_bits: int = DEFAULT_GROUP_BITS,
         hash_function: HashConstructor = DEFAULT_HASH_FUNCTION
-    ):
+    ) -> None:
         srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
         padded_A = pad_bytes(A, srp_group.byte_length)
 

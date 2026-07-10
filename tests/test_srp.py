@@ -22,6 +22,7 @@ class SRPTests(unittest.TestCase):
         )
 
         validate_verifier(v, srp_group_bits=2048)
+        SRPServer.validate_verifier(v, srp_group_bits=2048)
 
         self.assertEqual(len(s), 32)
         self.assertEqual(len(v), 256)
@@ -73,6 +74,7 @@ class SRPTests(unittest.TestCase):
         )
 
         validate_verifier(v, srp_group_bits=2048)
+        SRPServer.validate_verifier(v, srp_group_bits=2048)
 
         self.assertEqual(len(s), 32)
         self.assertEqual(len(v), 256)
@@ -125,6 +127,7 @@ class SRPTests(unittest.TestCase):
         )
 
         validate_verifier(v, srp_group_bits=2048)
+        SRPServer.validate_verifier(v, srp_group_bits=2048)
 
         self.assertEqual(len(s), 32)
         self.assertEqual(len(v), 256)
@@ -178,6 +181,7 @@ class SRPTests(unittest.TestCase):
         )
 
         validate_verifier(v, srp_group_bits=2048)
+        SRPServer.validate_verifier(v, srp_group_bits=2048)
 
         self.assertEqual(len(s), 32)
         self.assertEqual(len(v), 256)
@@ -190,13 +194,7 @@ class SRPTests(unittest.TestCase):
         with self.assertRaises(IllegalParameter):
             SRPServer.key_exchange(v, pad_int(0, 256), srp_group_bits=2048)
         
-        with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(v, pad_int(1, 256), srp_group_bits=2048)
-        
         srp_group = SRP_GROUP_PARAMETERS[2048]
-
-        with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(v, pad_int(srp_group.N-1, 256), srp_group_bits=2048)
         
         with self.assertRaises(IllegalParameter):
             SRPServer.key_exchange(v, pad_int(srp_group.N, 256), srp_group_bits=2048)

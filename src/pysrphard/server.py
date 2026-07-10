@@ -9,6 +9,10 @@ import secrets
 
 class SRPServer:
     @staticmethod
+    def validate_verifier(verifier: bytes, srp_group_bits: int = DEFAULT_GROUP_BITS) -> None:
+        validate_verifier(verifier, srp_group_bits)
+
+    @staticmethod
     def calculate_B(
         b: int,
         verifier: bytes,

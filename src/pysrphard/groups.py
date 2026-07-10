@@ -118,13 +118,13 @@ FC026E47 9558E447 5677E9AA 9E3050E2 765694DF C81F56E8 80B96E71\
 }
 
 class SRPGroup:
-    def __init__(self, bits: int, N: int, g: int, byte_length: int):
+    def __init__(self, bits: int, N: int, g: int, byte_length: int) -> None:
         self.bits = bits
         self.N = N
         self.g = g
         self.byte_length = byte_length
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'SRPGroup({self.bits}-bit)'
 
 SRP_GROUP_PARAMETERS = {
