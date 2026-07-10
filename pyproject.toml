@@ -1,0 +1,23 @@
+[build-system]
+requires = ['hatchling >= 1.26']
+build-backend = 'hatchling.build'
+
+[project]
+name = 'pysrphard'
+version = '0.0.1'
+authors = [
+    { name='Ryan Hopkins', email='ryan@ryanhopkins.dev' },
+]
+description = 'A pure Python implementation of SRP from RFC 5054 with hardened parameters and hash functions'
+readme = 'README.md'
+requires-python = '>=3.12'
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'Operating System :: OS Independent',
+]
+license = 'BSD-3-Clause'
+license-files = ['LICENS[CS]E*']
+
+[project.urls]
+Homepage = 'https://github.com/RyanHopkins7/pysrphard'
+Issues = 'https://github.com/RyanHopkins7/pysrphard/issues'
