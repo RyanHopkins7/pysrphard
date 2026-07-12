@@ -14,7 +14,7 @@ def pad_int(n: int, byte_length: int) -> bytes:
 def pad_bytes(b: bytes, byte_length: int) -> bytes:
     if len(b) > byte_length:
         raise IllegalParameter('byte_length is too short')
-    return pad_int(int.from_bytes(b, byteorder='big'), byte_length)
+    return b.rjust(byte_length, b'\x00')
 
 def compute_x_int(
     user_identity: bytes, 
