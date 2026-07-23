@@ -34,8 +34,8 @@ def validate_pub(pub: bytes, pub_name: str, srp_group_bits: int = DEFAULT_GROUP_
 
     if pub_int % srp_group.N == 0:
         raise IllegalParameter(f'{pub_name} % N cannot be equal to 0')
-    if pub_int <= 0 or pub_int >= srp_group.N:
-        raise IllegalParameter(f'{pub_name} must be in [1, N-1]')
+    if pub_int <= 1 or pub_int >= srp_group.N-1:
+        raise IllegalParameter(f'{pub_name} must be in [2, N-2]')
     if len(pub) != srp_group.byte_length:
         raise IllegalParameter(f'{pub_name} padding is incorrect')
 
