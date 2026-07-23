@@ -29,7 +29,7 @@ class SRPTests(unittest.TestCase):
 
         A, a = SRPClient.start_key_exchange(srp_group_bits=2048)
 
-        B, server_K = SRPServer.key_exchange(v, A, srp_group_bits=2048)
+        B, server_K = SRPServer.key_exchange(v, A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         client_M, client_K = SRPClient.finish_key_exchange(
             user_identity, 
@@ -38,6 +38,7 @@ class SRPTests(unittest.TestCase):
             A, 
             a, 
             B,
+            b'https://ryanhopkins.dev/',
             hashlib.pbkdf2_hmac, 
             { 
                 'hash_name': 'sha256', 
@@ -81,7 +82,7 @@ class SRPTests(unittest.TestCase):
 
         A, a = SRPClient.start_key_exchange(srp_group_bits=2048)
 
-        B, server_K = SRPServer.key_exchange(v, A, srp_group_bits=2048)
+        B, server_K = SRPServer.key_exchange(v, A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         client_M, client_K = SRPClient.finish_key_exchange(
             user_identity, 
@@ -90,6 +91,7 @@ class SRPTests(unittest.TestCase):
             A, 
             a, 
             B,
+            b'https://ryanhopkins.dev/',
             hashlib.scrypt, 
             { 
                 'n': 2, 
@@ -134,7 +136,7 @@ class SRPTests(unittest.TestCase):
 
         A, a = SRPClient.start_key_exchange(srp_group_bits=2048)
 
-        B, server_K = SRPServer.key_exchange(v, A, srp_group_bits=2048)
+        B, server_K = SRPServer.key_exchange(v, A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         client_M, client_K = SRPClient.finish_key_exchange(
             user_identity, 
@@ -143,6 +145,7 @@ class SRPTests(unittest.TestCase):
             A, 
             a, 
             B,
+            b'https://ryanhopkins.dev/',
             hashlib.pbkdf2_hmac, 
             { 
                 'hash_name': 'sha256', 
@@ -192,31 +195,31 @@ class SRPTests(unittest.TestCase):
         A, a = SRPClient.start_key_exchange(srp_group_bits=2048)
 
         with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(v, pad_int(0, 256), srp_group_bits=2048)
+            SRPServer.key_exchange(v, pad_int(0, 256), b'https://ryanhopkins.dev/', srp_group_bits=2048)
         
         srp_group = SRP_GROUP_PARAMETERS[2048]
         
         with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(v, pad_int(srp_group.N, 256), srp_group_bits=2048)
+            SRPServer.key_exchange(v, pad_int(srp_group.N, 256), b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(pad_int(0, 256), A, srp_group_bits=2048)
+            SRPServer.key_exchange(pad_int(0, 256), A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(pad_int(1, 256), A, srp_group_bits=2048)
+            SRPServer.key_exchange(pad_int(1, 256), A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(pad_int(srp_group.N-1, 256), A, srp_group_bits=2048)
+            SRPServer.key_exchange(pad_int(srp_group.N-1, 256), A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
         
         with self.assertRaises(IllegalParameter):
-            SRPServer.key_exchange(pad_int(srp_group.N, 256), A, srp_group_bits=2048)
+            SRPServer.key_exchange(pad_int(srp_group.N, 256), A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         with self.assertRaises(IllegalParameter):
             r = random.randint(2, 255)
             n = srp_group.N * r
-            SRPServer.key_exchange(v, pad_int(n, (n.bit_length() + 7) // 8), srp_group_bits=2048)
+            SRPServer.key_exchange(v, pad_int(n, (n.bit_length() + 7) // 8), b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
-        B, server_K = SRPServer.key_exchange(v, A, srp_group_bits=2048)
+        B, server_K = SRPServer.key_exchange(v, A, b'https://ryanhopkins.dev/', srp_group_bits=2048)
 
         with self.assertRaises(IllegalParameter):
             SRPClient.finish_key_exchange(
@@ -226,6 +229,7 @@ class SRPTests(unittest.TestCase):
                 A, 
                 a, 
                 pad_int(0, 256),
+                b'https://ryanhopkins.dev/',
                 hashlib.pbkdf2_hmac, 
                 { 
                     'hash_name': 'sha256', 
@@ -242,6 +246,7 @@ class SRPTests(unittest.TestCase):
                 pad_int(srp_group.N, 256), 
                 a, 
                 B,
+                b'https://ryanhopkins.dev/',
                 hashlib.pbkdf2_hmac, 
                 { 
                     'hash_name': 'sha256', 
@@ -257,6 +262,7 @@ class SRPTests(unittest.TestCase):
             A, 
             a, 
             B,
+            b'https://ryanhopkins.dev/',
             hashlib.pbkdf2_hmac, 
             { 
                 'hash_name': 'sha256', 

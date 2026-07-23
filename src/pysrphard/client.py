@@ -70,6 +70,7 @@ class SRPClient:
         A: bytes,
         a: bytes,
         B: bytes,
+        server_identity: bytes,
         kdf: KDF,
         kdf_parameters: dict,
         key_length: int = DEFAULT_KEY_LENGTH,
@@ -98,7 +99,7 @@ class SRPClient:
         if key_length < MIN_KEY_LENGTH:
             raise IllegalParameter(f'key_length must be >= {MIN_KEY_LENGTH}')
 
-        hkdf_info = MODULE_NAME.encode('utf-8') + padded_A + padded_B
+        hkdf_info = server_identity + MODULE_NAME.encode('utf-8') + padded_A + padded_B
         K = hkdf(S, key_length, info=hkdf_info, hash_function=hash_function)
         client_M = calculate_M(user_identity, salt, padded_A, padded_B, K, srp_group_bits, hash_function)
 
