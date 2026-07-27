@@ -61,6 +61,9 @@ class SRPServer:
         base = (A_int * pow(v_int, u_int, srp_group.N)) % srp_group.N
         premaster_secret = pow(base, b_int, srp_group.N)
 
+        if premaster_secret <= 1 or premaster_secret >= srp_group.N - 1:
+            raise IllegalParameter('calculated premaster_secret is an illegal value')
+
         return pad_int(premaster_secret, srp_group.byte_length)
 
     @staticmethod
