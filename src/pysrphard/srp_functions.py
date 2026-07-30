@@ -57,8 +57,18 @@ def validate_verifier(verifier: bytes, srp_group_bits: int = DEFAULT_GROUP_BITS)
     if len(verifier) != srp_group.byte_length:
         raise IllegalParameter('verifier padding is incorrect')
     
+def verifier_from_x(x_int: int, srp_group_bits: int = DEFAULT_GROUP_BITS) -> bytes:
+    srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
+
+    verifier_int = pow(srp_group.g, x_int, srp_group.N)
+    verifier = pad_int(verifier_int, srp_group.byte_length)
+
+    validate_verifier(verifier, srp_group_bits)
+
+    return verifier
+
 def create_verifier(
-    user_identity: bytes, 
+    user_identity: bytes,
     password: bytes,
     kdf: KDF,
     kdf_parameters: dict,
@@ -69,12 +79,7 @@ def create_verifier(
         salt = secrets.token_bytes(DEFAULT_SALT_LENGTH)
 
     x_int = compute_x_int(user_identity, password, salt, kdf, kdf_parameters)
-    srp_group = SRP_GROUP_PARAMETERS[srp_group_bits]
-
-    verifier_int = pow(srp_group.g, x_int, srp_group.N)
-    verifier = pad_int(verifier_int, srp_group.byte_length)
-
-    validate_verifier(verifier, srp_group_bits)
+    verifier = verifier_from_x(x_int, srp_group_bits)
 
     return verifier, salt
 
