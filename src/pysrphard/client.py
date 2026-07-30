@@ -49,9 +49,6 @@ class SRPClient:
         base = (B_int - k_int * pow(srp_group.g, x_int, srp_group.N)) % srp_group.N
         premaster_secret = pow(base, a_int + u_int * x_int, srp_group.N)
 
-        if premaster_secret <= 1 or premaster_secret >= srp_group.N - 1:
-            raise IllegalParameter('calculated premaster_secret is an illegal value')
-
         return pad_int(premaster_secret, srp_group.byte_length)
 
     @staticmethod
